@@ -1,0 +1,33 @@
+{
+  "name": "ai-chat-electron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "electron-main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:vite": "vite",
+    "start": "electron .",
+    "dev:electron": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "autoprefixer": "^10.4.27",
+    "electron": "^40.8.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "element-plus": "^2.13.5",
+    "highlight.js": "^11.11.1",
+    "lucide-vue-next": "^0.577.0",
+    "marked": "^17.0.4",
+    "vue": "^3.5.29",
+    "vue-router": "^5.0.3"
+  }
+}
