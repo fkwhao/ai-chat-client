@@ -75,7 +75,7 @@ const lastUserMessageIndex = computed(() => {
 })
 
 const sentQuestions = computed(() => {
-  return messageHistory.filter(m => m.role === 'user').map(m => m.content)
+  return messageHistory.filter(m => m.role === 'user').map(m => m.displayContent)
 })
 
 const scrollToMessage = (index) => {
@@ -98,7 +98,7 @@ const scrollToMessage = (index) => {
 const editMessage = (index) => {
   if (isStreaming.value) stopGeneration()
   editingIndex.value = index
-  userInput.value = messageHistory[index].content
+  userInput.value = messageHistory[index].displayContent
   nextTick(() => {
     autoResize();
     textareaRef.value?.focus()
@@ -162,6 +162,40 @@ const handleKeydown = (e) => {
 
 const pendingFiles = ref([])
 const previewFile = ref(null)
+const USER_MESSAGE_CONTENT_VERSION = 1
+
+const isStructuredUserMessageContent = (value) => {
+  if (typeof value !== 'string' || !value.startsWith('__USER_MESSAGE__')) return false
+  try {
+    const parsed = JSON.parse(value.slice('__USER_MESSAGE__'.length))
+    return parsed?.type === 'user_message' && parsed?.version === USER_MESSAGE_CONTENT_VERSION
+  } catch (e) {
+    return false
+  }
+}
+
+const parseStructuredUserMessageContent = (value) => {
+  if (!isStructuredUserMessageContent(value)) return null
+  try {
+    return JSON.parse(value.slice('__USER_MESSAGE__'.length))
+  } catch (e) {
+    return null
+  }
+}
+
+const createMessageRecord = ({id, role, content, reasoningContent = '', isStreaming = false}) => {
+  const parsedUserContent = role === 'user' ? parseStructuredUserMessageContent(content) : null
+  return {
+    id,
+    role,
+    content: typeof content === 'string' ? content : '',
+    displayContent: parsedUserContent?.text || (typeof content === 'string' ? content : ''),
+    attachments: parsedUserContent?.attachments || [],
+    requestContent: parsedUserContent?.requestContent || (typeof content === 'string' ? content : ''),
+    reasoningContent,
+    isStreaming
+  }
+}
 
 const addPendingFile = (file) => {
   const isImage = file.type.startsWith('image/')
@@ -202,6 +236,89 @@ const removePendingFile = (index) => {
   pendingFiles.value.splice(index, 1)
 }
 
+const clearPendingFiles = () => {
+  pendingFiles.value.forEach(item => URL.revokeObjectURL(item.url))
+  pendingFiles.value = []
+}
+
+const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = () => resolve(reader.result)
+  reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`))
+  reader.readAsDataURL(file)
+})
+
+const buildUserMessageContent = async (text, files) => {
+  if (!files || files.length === 0) return text
+
+  const contentParts = []
+  if (text) {
+    contentParts.push({type: 'text', text})
+  }
+
+  const attachmentNotes = []
+  for (const item of files) {
+    if (item.isImage) {
+      const dataUrl = await fileToDataUrl(item.file)
+      contentParts.push({
+        type: 'image_url',
+        image_url: {url: dataUrl}
+      })
+    } else {
+      attachmentNotes.push(item.name)
+    }
+  }
+
+  if (attachmentNotes.length > 0) {
+    const note = `Attached files (non-image, metadata only): ${attachmentNotes.join(', ')}`
+    if (contentParts.length === 0) {
+      contentParts.push({type: 'text', text: note})
+    } else {
+      const firstText = contentParts.find(part => part.type === 'text')
+      if (firstText) firstText.text = `${firstText.text}\n${note}`
+      else contentParts.unshift({type: 'text', text: note})
+    }
+  }
+
+  if (contentParts.length === 1 && contentParts[0].type === 'text') {
+    return contentParts[0].text
+  }
+
+  return contentParts
+}
+
+const buildStoredUserMessageContent = async (text, files) => {
+  if (!files || files.length === 0) return text
+
+  const requestContent = await buildUserMessageContent(text, files)
+  const attachments = []
+
+  for (const item of files) {
+    if (item.isImage) {
+      attachments.push({
+        type: 'image',
+        name: item.name,
+        size: item.size,
+        url: await fileToDataUrl(item.file)
+      })
+    } else {
+      attachments.push({
+        type: 'file',
+        name: item.name,
+        size: item.size
+      })
+    }
+  }
+
+  return `__USER_MESSAGE__${JSON.stringify({
+    type: 'user_message',
+    version: USER_MESSAGE_CONTENT_VERSION,
+    text,
+    attachments,
+    requestContent
+  })}`
+}
+
 const openPreview = (item) => {
   previewFile.value = item
 }
@@ -222,13 +339,13 @@ watch(() => route.query.session, async (newSessionId) => {
         const msgs = await res.json()
         messageHistory.length = 0
         msgs.forEach(m => {
-          messageHistory.push({
+          messageHistory.push(createMessageRecord({
             id: m.id,
             role: m.role,
             content: m.content || '',
             reasoningContent: m.reasoningContent || '',
             isStreaming: false
-          })
+          }))
         })
         scrollToBottom(true, false)
       }
@@ -407,7 +524,14 @@ const selectModel = (id) => {
 const sendMessage = async () => {
   if ((!userInput.value.trim() && pendingFiles.value.length === 0) || isStreaming.value) return
   const currentModel = availableModels.value.find(m => m.id === selectedModelId.value)
-  if (!currentModel || !currentModel.url || !currentModel.key) return alert('请先完善 API 密钥！')
+  const inputText = userInput.value.trim()
+  const filesForRequest = [...pendingFiles.value]
+  const imageNames = filesForRequest.filter(item => item.isImage).map(item => item.name)
+  const fileNames = filesForRequest.map(item => item.name)
+  const userDisplayText = inputText || (imageNames.length > 0
+          ? `[Image] ${imageNames.join(', ')}`
+          : `[File] ${fileNames.join(', ')}`)
+  if (!currentModel || !currentModel.url || !currentModel.key) return alert('请先完善 API 配置')
 
   if (editingIndex.value !== -1) {
     const targetMessageId = messageHistory[editingIndex.value].id
@@ -431,7 +555,7 @@ const sendMessage = async () => {
   if (!activeSessionId) {
     isCreatingSession.value = true
     try {
-      const res = await fetch(`${API_BASE}/session?title=${encodeURIComponent(userInput.value.trim().substring(0, 15) || '新对话')}`, {method: 'POST'})
+      const res = await fetch(`${API_BASE}/session?title=${encodeURIComponent(userDisplayText.substring(0, 15) || '新对话')}`, {method: 'POST'})
       const session = await res.json()
       activeSessionId = session.id
       router.replace(`/?session=${activeSessionId}`)
@@ -442,7 +566,13 @@ const sendMessage = async () => {
     }
   }
 
-  messageHistory.push({role: 'user', content: userInput.value})
+  const storedUserContent = await buildStoredUserMessageContent(inputText, filesForRequest)
+  const lastUserContent = await buildUserMessageContent(inputText, filesForRequest)
+
+  messageHistory.push(createMessageRecord({
+    role: 'user',
+    content: storedUserContent
+  }))
   userInput.value = ''
   nextTick(() => {
     if (textareaRef.value) textareaRef.value.style.height = 'auto'
@@ -451,12 +581,15 @@ const sendMessage = async () => {
   isStreaming.value = true
   scrollToBottom(true, true)
 
-  messageHistory.push({role: 'assistant', content: '', reasoningContent: '', isStreaming: true})
+  messageHistory.push(createMessageRecord({role: 'assistant', content: '', reasoningContent: '', isStreaming: true}))
   const currentIndex = messageHistory.length - 1
   abortController.value = new AbortController()
 
   try {
-    const requestMessages = messageHistory.slice(0, -1).map(m => ({role: m.role, content: m.content}))
+    const requestMessages = messageHistory
+        .slice(0, -1)
+        .map(m => ({role: m.role, content: m.requestContent}))
+
     const response = await fetch('/api/v1/chat/completions', {
       method: 'POST',
       signal: abortController.value.signal,
@@ -507,7 +640,7 @@ const sendMessage = async () => {
     abortController.value = null
     scrollToBottom(false, true)
 
-    pendingFiles.value = []
+    clearPendingFiles()
 
     if (activeSessionId) {
       try {
@@ -517,7 +650,7 @@ const sendMessage = async () => {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            userContent: userMsg.content,
+            userContent: storedUserContent,
             assistantContent: aiMsg.content,
             reasoningContent: aiMsg.reasoningContent
           })
@@ -602,13 +735,30 @@ const sendMessage = async () => {
             </div>
           </details>
 
-          <div v-if="msg.content || (msg.isStreaming && !msg.reasoningContent)" :class="[
+          <div v-if="(msg.role === 'user' ? msg.displayContent : msg.content) || msg.attachments?.length > 0 || (msg.isStreaming && !msg.reasoningContent)" :class="[
             'relative px-5 py-3.5 leading-relaxed text-[15px] transition-all max-w-[95%] sm:max-w-[85%]',
             msg.role === 'user'
               ? 'user-message bg-blue-50/60 border border-blue-100/50 dark:bg-[#2f2f2f] dark:border-transparent text-gray-900 dark:text-[#e0e0e0] rounded-[22px] rounded-tr-[4px] shadow-sm'
               : 'ai-message bg-transparent dark:bg-transparent text-gray-800 dark:text-[#d4d4d4] rounded-[22px] border-none shadow-none'
           ]">
-            <div class="markdown-body break-words" v-html="renderMarkdown(msg.content)"></div>
+            <div v-if="msg.attachments?.length > 0" class="flex flex-wrap gap-3 mb-3">
+              <template v-for="(attachment, attachmentIndex) in msg.attachments" :key="`${i}-${attachmentIndex}`">
+                <img v-if="attachment.type === 'image'" :src="attachment.url" :alt="attachment.name"
+                     @click="openPreview({ ...attachment, isImage: true })"
+                     class="max-w-[220px] max-h-[220px] object-cover rounded-2xl border border-gray-200/60 dark:border-[#3a3a3a] cursor-zoom-in"/>
+                <div v-else
+                     class="flex items-center gap-2 bg-white/70 dark:bg-[#191919] border border-gray-200 dark:border-[#333333] rounded-xl px-3 py-2 max-w-[260px]">
+                  <FileText :size="18" class="shrink-0"/>
+                  <div class="min-w-0">
+                    <div class="text-[12px] font-semibold truncate">{{ attachment.name }}</div>
+                    <div class="text-[11px] opacity-70">{{ attachment.size }}</div>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <div v-if="msg.role === 'user' ? msg.displayContent : msg.content"
+                 class="markdown-body break-words"
+                 v-html="renderMarkdown(msg.role === 'user' ? msg.displayContent : msg.content)"></div>
           </div>
 
           <div
@@ -627,7 +777,7 @@ const sendMessage = async () => {
             </div>
 
             <div class="relative group/btn" v-if="!msg.isStreaming">
-              <button @click="copyToClipboard(msg.content, i)"
+              <button @click="copyToClipboard(msg.role === 'user' ? (msg.displayContent || '[附件]') : msg.content, i)"
                       class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2b2b2b] transition-all">
                 <CheckCheck v-if="copiedMessageIndex === i" :size="14" class="text-green-500" stroke-width="2.5"/>
                 <Copy v-else :size="14" stroke-width="2.5"/>
@@ -817,7 +967,7 @@ const sendMessage = async () => {
 
             <div class="flex-1 transition-all duration-500 group-hover:-translate-x-1 group-hover:bg-white/90 dark:group-hover:bg-[#2b2b2b]/90 group-hover:backdrop-blur-xl p-2 -m-2 rounded-xl border border-transparent group-hover:border-gray-200/50 dark:group-hover:border-white/5 group-hover:shadow-lg overflow-hidden">
               <div class="text-[13.5px] font-medium text-gray-800 dark:text-[#ddd] group-hover:text-gray-900 dark:group-hover:text-white leading-relaxed line-clamp-1 group-hover:line-clamp-none group-hover:whitespace-normal transition-colors duration-300 drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                {{ q.content }}
+                {{ q.displayContent || '[附件]' }}
               </div>
             </div>
 
