@@ -61,7 +61,12 @@
       </div>
     </div>
 
-    <div class="p-4 bg-[#f9f9f9] dark:bg-[#171717] border-t border-gray-200/50 dark:border-white/5 shrink-0">
+    <div class="p-4 bg-[#f9f9f9] dark:bg-[#171717] border-t border-gray-200/50 dark:border-white/5 shrink-0 space-y-1">
+      <router-link to="/token-stats"
+                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#262626] transition-all text-gray-500 dark:text-[#888] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98]">
+        <BarChart3 :size="16" class="transition-transform duration-300 group-hover:scale-110"/>
+        <span class="text-[13px] font-semibold">Token 统计</span>
+      </router-link>
       <router-link to="/settings"
                    class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#262626] transition-all text-gray-500 dark:text-[#888] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98]">
         <Settings :size="16" class="transition-transform duration-500 group-hover:rotate-45"/>
@@ -74,7 +79,7 @@
 <script setup>
 import {ref, computed, onMounted, onUnmounted, watch} from 'vue'
 import {useRouter, useRoute} from 'vue-router'
-import {Plus, MessageSquare, Settings, Search, Trash2, SquarePen} from 'lucide-vue-next'
+import {Plus, MessageSquare, Settings, Search, Trash2, SquarePen, BarChart3} from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
