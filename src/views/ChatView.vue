@@ -23,6 +23,7 @@ import {
 } from 'lucide-vue-next'
 import {marked} from 'marked'
 import hljs from 'highlight.js'
+import {getEncoding, encodingForModel} from 'js-tiktoken'
 
 const props = defineProps({
   isSidebarOpen: {type: Boolean, default: false}
@@ -53,6 +54,35 @@ const isRightSidebarOpen = ref(false)
 const editingIndex = ref(-1)
 const historyIndex = ref(-1)
 const draftInput = ref('')
+
+// Token 统计（只显示 totalTokens，从数据库获取）
+const sessionTokenStats = ref({
+  totalTokens: 0
+})
+
+// Tiktoken 编码器（使用 cl100k_base，适用于 GPT-4/3.5 和大多数模型）
+let tokenizer = null
+const initTokenizer = () => {
+  if (!tokenizer) {
+    try {
+      tokenizer = getEncoding('cl100k_base')
+    } catch (e) {
+      console.error('Failed to init tokenizer:', e)
+    }
+  }
+}
+
+// 精确计算 token 数量
+const countTokens = (text) => {
+  if (!text) return 0
+  if (!tokenizer) initTokenizer()
+  if (!tokenizer) return 0
+  try {
+    return tokenizer.encode(text).length
+  } catch (e) {
+    return 0
+  }
+}
 
 // 点击顶栏的“新对话”按钮
 const startNewSession = () => {
@@ -332,8 +362,18 @@ watch(() => route.query.session, async (newSessionId) => {
     return
   }
 
+  // 重置 token 统计
+  sessionTokenStats.value = { totalTokens: 0 }
+
   if (newSessionId) {
     try {
+      // 获取会话信息（包括 totalTokens）
+      const sessionRes = await fetch(`${API_BASE}/session/${newSessionId}`)
+      if (sessionRes.ok) {
+        const session = await sessionRes.json()
+        sessionTokenStats.value.totalTokens = session.totalTokens || 0
+      }
+
       const res = await fetch(`${API_BASE}/session/${newSessionId}/messages`)
       if (res.ok) {
         const msgs = await res.json()
@@ -623,6 +663,7 @@ const sendMessage = async () => {
             const data = JSON.parse(payload)
             const delta = data.choices[0].delta?.content || ''
             const reasoning = data.choices[0].delta?.reasoning_content || ''
+
             if (reasoning) messageHistory[currentIndex].reasoningContent += reasoning
             if (delta) messageHistory[currentIndex].content += delta
             scrollToBottom(false, false)
@@ -640,6 +681,14 @@ const sendMessage = async () => {
     abortController.value = null
     scrollToBottom(false, true)
 
+    // 计算本次新增的 token
+    const userText = typeof storedUserContent === 'string' ? storedUserContent : ''
+    const aiText = (messageHistory[currentIndex].content || '') + (messageHistory[currentIndex].reasoningContent || '')
+    const newTokens = countTokens(userText) + countTokens(aiText)
+
+    // 更新前端显示的 totalTokens（累加）
+    sessionTokenStats.value.totalTokens += newTokens
+
     clearPendingFiles()
 
     if (activeSessionId) {
@@ -652,7 +701,8 @@ const sendMessage = async () => {
           body: JSON.stringify({
             userContent: storedUserContent,
             assistantContent: aiMsg.content,
-            reasoningContent: aiMsg.reasoningContent
+            reasoningContent: aiMsg.reasoningContent,
+            tokens: newTokens
           })
         })
         window.dispatchEvent(new CustomEvent('refresh-sessions'))
@@ -691,6 +741,13 @@ const sendMessage = async () => {
             class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold text-gray-400 dark:text-[#737373] uppercase tracking-widest transition-colors mr-2">
           <div class="w-1.5 h-1.5 bg-green-500/80 rounded-full"></div>
           System Ready
+        </div>
+
+        <!-- Token 统计显示 -->
+        <div v-if="messageHistory.length > 0"
+             class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-gray-400 dark:text-[#737373] uppercase tracking-widest transition-colors bg-gray-100/60 dark:bg-[#2b2b2b]/60">
+          <span class="text-gray-600 dark:text-[#aaa]">{{ sessionTokenStats.totalTokens }}</span>
+          <span class="text-gray-400 dark:text-[#666]">tokens</span>
         </div>
 
         <button @click="isRightSidebarOpen = !isRightSidebarOpen" title="查看本局提问大纲"
