@@ -455,6 +455,29 @@ const closeDropdown = (e) => {
 
 // =========== Markdown & Code Renderer ===========
 const mainRenderer = new marked.Renderer()
+
+// 表格渲染
+mainRenderer.table = (token) => {
+  const header = token.header.map(cell => `<th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-[#ccc] bg-gray-50 dark:bg-[#2b2b2b] border-b border-gray-200 dark:border-[#444]">${cell.text}</th>`).join('')
+  const rows = token.rows.map(row => {
+    const cells = row.map(cell => `<td class="px-4 py-2.5 text-sm text-gray-600 dark:text-[#bbb] border-b border-gray-100 dark:border-[#333]">${cell.text}</td>`).join('')
+    return `<tr class="hover:bg-gray-50 dark:hover:bg-[#2b2b2b]/50 transition-colors">${cells}</tr>`
+  }).join('')
+
+  return `
+    <div class="my-4 overflow-x-auto rounded-lg border border-gray-200 dark:border-[#333]">
+      <table class="w-full text-sm">
+        <thead>
+          <tr>${header}</tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-[#333]">
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+  `
+}
+
 mainRenderer.code = (tokenOrCode, langOrUndefined) => {
   try {
     const code = typeof tokenOrCode === 'object' ? tokenOrCode.text : tokenOrCode
