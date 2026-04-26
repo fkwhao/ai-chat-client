@@ -49,6 +49,31 @@ const copiedMessageIndex = ref(null)
 const isCreatingSession = ref(false)
 const API_BASE = '/api/v1/history'
 
+// 后端连接状态
+const backendStatus = ref('checking') // 'checking' | 'ready' | 'error'
+let healthCheckInterval = null
+
+// 检测后端连接状态
+const checkBackendHealth = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/sessions/page?current=1&size=1`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(3000)
+    })
+    if (res.ok) {
+      if (backendStatus.value === 'error') {
+        // 从断开恢复，刷新页面
+        window.location.reload()
+      }
+      backendStatus.value = 'ready'
+    } else {
+      backendStatus.value = 'error'
+    }
+  } catch (e) {
+    backendStatus.value = 'error'
+  }
+}
+
 const isRightSidebarOpen = ref(false)
 
 const editingIndex = ref(-1)
@@ -519,11 +544,16 @@ onMounted(() => {
     availableModels.value = JSON.parse(saved)
     if (availableModels.value.length > 0) selectedModelId.value = availableModels.value[0].id
   }
+
+  // 检测后端连接状态
+  checkBackendHealth()
+  healthCheckInterval = setInterval(checkBackendHealth, 5000)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeDropdown)
   document.removeEventListener('keydown', handleKeydown)
+  if (healthCheckInterval) clearInterval(healthCheckInterval)
 })
 
 const checkScroll = () => {
@@ -739,8 +769,12 @@ const sendMessage = async () => {
       <div class="flex items-center gap-2">
         <div
             class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold text-gray-400 dark:text-[#737373] uppercase tracking-widest transition-colors mr-2">
-          <div class="w-1.5 h-1.5 bg-green-500/80 rounded-full"></div>
-          System Ready
+          <div v-if="backendStatus === 'checking'" class="w-1.5 h-1.5 bg-yellow-500/80 rounded-full animate-pulse"></div>
+          <div v-else-if="backendStatus === 'ready'" class="w-1.5 h-1.5 bg-green-500/80 rounded-full"></div>
+          <div v-else class="w-1.5 h-1.5 bg-red-500/80 rounded-full"></div>
+          <span v-if="backendStatus === 'checking'">Connecting...</span>
+          <span v-else-if="backendStatus === 'ready'">System Ready</span>
+          <span v-else>Backend Offline</span>
         </div>
 
         <!-- Token 统计显示 -->
