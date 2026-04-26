@@ -20,6 +20,7 @@ This project focuses on a clean desktop chat experience for OpenAI-compatible AP
 - Image paste and file attachment support.
 - Light and dark mode.
 - Desktop shell powered by Electron.
+- Token statistics with persistence (only increases, never decreases).
 
 ## Tech Stack
 
@@ -31,6 +32,7 @@ This project focuses on a clean desktop chat experience for OpenAI-compatible AP
 - `marked`
 - `highlight.js`
 - `lucide-vue-next`
+- `js-tiktoken`
 
 ## Project Structure
 
