@@ -770,7 +770,7 @@ const sendMessage = async () => {
   <div class="flex flex-col h-full bg-white dark:bg-[#212121] relative transition-colors duration-500">
 
     <header
-        class="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-30 bg-white/80 dark:bg-[#212121]/90 backdrop-blur-2xl border-b border-gray-100 dark:border-transparent transition-colors duration-500 shrink-0">
+        class="h-14 flex items-center px-4 sm:px-6 justify-between sticky top-0 z-30 bg-white/70 dark:bg-[#212121]/80 backdrop-blur-xl border-b border-gray-100/80 dark:border-white/5 transition-colors duration-500 shrink-0">
 
       <div class="flex items-center gap-1.5">
         <button @click="emit('toggle-sidebar')"
@@ -852,8 +852,8 @@ const sendMessage = async () => {
           <div v-if="(msg.role === 'user' ? msg.displayContent : msg.content) || msg.attachments?.length > 0 || (msg.isStreaming && !msg.reasoningContent)" :class="[
             'relative px-5 py-3.5 leading-relaxed text-[15px] transition-all max-w-[95%] sm:max-w-[85%]',
             msg.role === 'user'
-              ? 'user-message bg-blue-50/60 border border-blue-100/50 dark:bg-[#2f2f2f] dark:border-transparent text-gray-900 dark:text-[#e0e0e0] rounded-[22px] rounded-tr-[4px] shadow-sm'
-              : 'ai-message bg-transparent dark:bg-transparent text-gray-800 dark:text-[#d4d4d4] rounded-[22px] border-none shadow-none'
+              ? 'user-message bg-gradient-to-br from-blue-50 to-indigo-50/70 border border-blue-100/60 dark:bg-gradient-to-br dark:from-[#2a3a5c]/40 dark:to-[#1e2d4a]/30 dark:border-blue-900/30 text-gray-900 dark:text-[#e8e8e8] rounded-2xl rounded-tr-sm shadow-sm dark:shadow-none'
+              : 'ai-message bg-transparent dark:bg-transparent text-gray-800 dark:text-[#d4d4d4] rounded-2xl border-none shadow-none'
           ]">
             <div v-if="msg.attachments?.length > 0" class="flex flex-wrap gap-3 mb-3">
               <template v-for="(attachment, attachmentIndex) in msg.attachments" :key="`${i}-${attachmentIndex}`">
@@ -918,11 +918,15 @@ const sendMessage = async () => {
       <div class="relative w-full max-w-[950px] pointer-events-auto flex flex-col items-center">
 
         <div v-if="messageHistory.length === 0"
-             class="flex flex-col items-center gap-4 mb-8 text-gray-800 dark:text-[#e0e0e0] animate-fade-in transition-all">
-          <Sparkles :size="36" class="text-blue-500/80"/>
-          <h2 class="text-2xl font-semibold tracking-wide text-gray-800 dark:text-[#d4d4d4]">
+             class="flex flex-col items-center gap-5 mb-10 text-gray-800 dark:text-[#e0e0e0] animate-fade-in transition-all">
+          <div class="relative">
+            <div class="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full scale-150"></div>
+            <Sparkles :size="40" class="relative text-blue-500"/>
+          </div>
+          <h2 class="text-2xl font-semibold tracking-wide text-gray-700 dark:text-[#d0d0d0]">
             有什么可以帮到你？
           </h2>
+          <p class="text-sm text-gray-400 dark:text-[#888] mt-1">输入问题开始对话</p>
         </div>
 
         <Transition name="fade-up">
@@ -955,7 +959,7 @@ const sendMessage = async () => {
               class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[30px] opacity-0 group-focus-within/wrapper:opacity-40 dark:group-focus-within/wrapper:opacity-20 blur-md transition-opacity duration-500 pointer-events-none"></div>
 
           <div
-              class="relative w-full bg-white dark:bg-[#2b2b2b] border border-gray-200 dark:border-transparent rounded-3xl shadow-sm p-2 transition-all duration-300">
+              class="relative w-full bg-white dark:bg-[#282828] border border-gray-200/80 dark:border-[#3a3a3a] rounded-2xl shadow-sm p-2 transition-all duration-300 hover:shadow-md dark:hover:border-[#444]">
             <div v-if="pendingFiles.length > 0"
                  class="flex flex-wrap gap-3 px-3 pt-2 pb-1 border-b border-gray-100 dark:border-[#333333] mb-2">
               <div v-for="(item, index) in pendingFiles" :key="index"
@@ -981,7 +985,7 @@ const sendMessage = async () => {
             <textarea
                 ref="textareaRef" v-model="userInput" @input="autoResize" @keydown="handleTextareaKeydown"
                 @paste="handlePaste"
-                class="w-full bg-transparent border-none focus:ring-0 focus:outline-none px-4 py-3 text-gray-800 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#737373] resize-none max-h-[160px] overflow-y-auto text-[15px] leading-relaxed custom-scrollbar"
+                class="w-full bg-transparent border-none focus:ring-0 focus:outline-none px-4 py-3 text-gray-800 dark:text-[#e8e8e8] placeholder-gray-400 dark:placeholder-[#666] resize-none max-h-[160px] overflow-y-auto text-[15px] leading-relaxed custom-scrollbar"
                 placeholder="发消息或 Ctrl+V 粘贴文件... (Shift+Enter 换行, Esc 取消编辑)" rows="1"
             ></textarea>
 
@@ -1015,13 +1019,13 @@ const sendMessage = async () => {
                 </div>
 
                 <button v-if="!isStreaming" @click="sendMessage"
-                        :class="(userInput.trim() || pendingFiles.length > 0) ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-[#404040] text-gray-400 dark:text-[#737373] cursor-not-allowed'"
-                        class="p-2 rounded-xl transition-all">
+                        :class="(userInput.trim() || pendingFiles.length > 0) ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-[#3a3a3a] text-gray-400 dark:text-[#666] cursor-not-allowed'"
+                        class="p-2.5 rounded-xl transition-all">
                   <ArrowUp :size="18" stroke-width="2.5"/>
                 </button>
 
                 <button v-else @click="stopGeneration"
-                        class="bg-gray-100 dark:bg-[#404040] text-gray-500 dark:text-[#a3a3a3] hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-[#4f4f4f] p-2 rounded-xl transition-all">
+                        class="bg-gray-100 dark:bg-[#3a3a3a] text-gray-500 dark:text-[#999] hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-[#4a4a4a] p-2.5 rounded-xl transition-all">
                   <Square :size="16" class="fill-current"/>
                 </button>
               </div>

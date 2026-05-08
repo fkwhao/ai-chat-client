@@ -1,22 +1,22 @@
 <template>
-  <aside class="h-full w-full bg-[#f9f9f9] dark:bg-[#171717] flex flex-col relative transition-colors duration-500 border-r border-gray-200/50 dark:border-white/5 font-sans">
+  <aside class="h-full w-full bg-gradient-to-b from-[#fafafa] to-[#f5f5f5] dark:from-[#171717] dark:to-[#141414] flex flex-col relative transition-colors duration-500 border-r border-gray-200/40 dark:border-white/5 font-sans">
 
     <div class="px-4 pt-6 pb-4 space-y-4">
-      <button @click="createNewSession" class="w-full group relative flex items-center justify-between px-4 py-3 bg-white dark:bg-[#262626] border border-gray-200/80 dark:border-transparent rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-gray-300 dark:hover:bg-[#333333] active:scale-[0.98] transition-all duration-300 overflow-hidden">
+      <button @click="createNewSession" class="w-full group relative flex items-center justify-between px-4 py-3 bg-white dark:bg-[#252525] border border-gray-200/60 dark:border-[#3a3a3a] rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-[#4a4a4a] dark:hover:bg-[#2a2a2a] active:scale-[0.98] transition-all duration-300 overflow-hidden">
         <div class="flex items-center gap-2.5 z-10">
-          <div class="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 p-1 rounded-md group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-blue-500 transition-all duration-300">
-            <Plus :size="16" stroke-width="2.5" />
+          <div class="bg-gray-700 dark:bg-[#444] text-white p-1.5 rounded-lg group-hover:scale-110 group-hover:shadow-lg transition-all duration-300">
+            <Plus :size="14" stroke-width="2.5" />
           </div>
-          <span class="text-[14px] font-semibold text-gray-700 dark:text-[#d4d4d4] group-hover:text-gray-900 dark:group-hover:text-white transition-colors">新对话</span>
+          <span class="text-[14px] font-semibold text-gray-700 dark:text-[#d8d8d8] group-hover:text-gray-900 dark:hover:text-white transition-colors">新对话</span>
         </div>
-        <SquarePen :size="15" class="text-gray-300 dark:text-[#555] group-hover:text-gray-400 transition-colors group-hover:translate-x-0.5" />
+        <SquarePen :size="15" class="text-gray-300 dark:text-[#555] group-hover:text-gray-400 dark:group-hover:text-[#777] transition-colors group-hover:translate-x-0.5" />
       </button>
 
       <div class="relative group">
         <Search :size="15"
-                class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#666] group-focus-within:text-blue-500 transition-colors duration-300"/>
+                class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#666] group-focus-within:text-gray-600 dark:group-focus-within:text-[#888] transition-colors duration-300"/>
         <input v-model="searchQuery" type="text" placeholder="搜索历史..."
-               class="w-full bg-gray-100/80 dark:bg-[#212121] border-2 border-transparent focus:bg-white dark:focus:bg-[#1a1a1a] focus:border-blue-500/20 dark:focus:border-blue-500/30 rounded-[10px] pl-9 pr-4 py-2 text-[13px] text-gray-700 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666] outline-none transition-all duration-300 shadow-sm focus:shadow-md"/>
+               class="w-full bg-white dark:bg-[#222222] border-2 border-transparent focus:bg-white dark:focus:bg-[#1a1a1a] focus:border-gray-300 dark:focus:border-[#444] rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-gray-700 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666] outline-none transition-all duration-300 shadow-sm focus:shadow-md"/>
       </div>
     </div>
 
@@ -24,28 +24,28 @@
       <div v-for="(group, groupName) in groupedHistory" :key="groupName" class="space-y-1">
 
         <div v-if="group.length > 0"
-             class="sticky top-0 z-20 px-3 pt-2 pb-1.5 bg-[#f9f9f9]/90 dark:bg-[#171717]/90 backdrop-blur-md">
-          <span class="text-[11px] font-bold text-gray-400 dark:text-[#666] tracking-wider">{{ groupName }}</span>
+             class="sticky top-0 z-20 px-3 pt-2 pb-1.5 bg-[#fafafa]/95 dark:bg-[#171717]/95 backdrop-blur-md">
+          <span class="text-[10px] font-bold text-gray-400 dark:text-[#666] uppercase tracking-widest">{{ groupName }}</span>
         </div>
 
         <div v-for="item in group" :key="item.id"
              @click="selectSession(item.id)"
              :class="route.query.session === item.id
-                ? 'bg-white dark:bg-[#262626] shadow-sm border border-gray-200/80 dark:border-white/5'
-                : 'border border-transparent hover:bg-gray-100 dark:hover:bg-[#212121]'"
+                ? 'bg-white dark:bg-[#252525] shadow-sm border border-gray-300 dark:border-[#444]'
+                : 'border border-transparent hover:bg-white/60 dark:hover:bg-[#222]/60'"
              class="group/item flex items-center justify-between mx-1 p-2.5 rounded-xl cursor-pointer transition-all duration-200">
 
           <div class="flex items-center gap-3 overflow-hidden pl-1">
-            <div class="w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300"
-                 :class="route.query.session === item.id ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]' : 'bg-transparent group-hover/item:bg-gray-300 dark:group-hover/item:bg-[#444]'"></div>
+            <div class="w-2 h-2 rounded-full shrink-0 transition-all duration-300"
+                 :class="route.query.session === item.id ? 'bg-gray-700 dark:bg-[#aaa] shadow-sm' : 'bg-transparent group-hover/item:bg-gray-300 dark:group-hover/item:bg-[#444]'"></div>
             <span class="truncate text-[13px] transition-colors duration-200"
-                  :class="route.query.session === item.id ? 'font-semibold text-gray-800 dark:text-[#eee]' : 'text-gray-500 dark:text-[#888] group-hover/item:text-gray-700 dark:group-hover/item:text-[#bbb]'">
+                  :class="route.query.session === item.id ? 'font-semibold text-gray-800 dark:text-[#eee]' : 'text-gray-500 dark:text-[#999] group-hover/item:text-gray-700 dark:group-hover/item:text-[#bbb]'">
               {{ item.title }}
             </span>
           </div>
 
           <button @click.stop="deleteSession(item.id)"
-                  class="opacity-0 group-hover/item:opacity-100 p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 rounded-md transition-all text-gray-300 dark:text-[#555] active:scale-90">
+                  class="opacity-0 group-hover/item:opacity-100 p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all text-gray-300 dark:text-[#555] active:scale-90">
             <Trash2 :size="14"/>
           </button>
         </div>
@@ -61,14 +61,14 @@
       </div>
     </div>
 
-    <div class="p-4 bg-[#f9f9f9] dark:bg-[#171717] border-t border-gray-200/50 dark:border-white/5 shrink-0 space-y-1">
+    <div class="p-4 bg-[#fafafa]/80 dark:bg-[#171717]/80 backdrop-blur-sm border-t border-gray-200/40 dark:border-white/5 shrink-0 space-y-1">
       <router-link to="/token-stats" @click="emit('close')"
-                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#262626] transition-all text-gray-500 dark:text-[#888] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98]">
+                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/80 dark:hover:bg-[#252525] transition-all text-gray-500 dark:text-[#888] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98]">
         <BarChart3 :size="16" class="transition-transform duration-300 group-hover:scale-110"/>
         <span class="text-[13px] font-semibold">Token 统计</span>
       </router-link>
       <router-link to="/settings" @click="emit('close')"
-                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#262626] transition-all text-gray-500 dark:text-[#888] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98]">
+                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/80 dark:hover:bg-[#252525] transition-all text-gray-500 dark:text-[#888] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98]">
         <Settings :size="16" class="transition-transform duration-500 group-hover:rotate-45"/>
         <span class="text-[13px] font-semibold">设置</span>
       </router-link>
