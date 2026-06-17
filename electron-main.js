@@ -1,14 +1,19 @@
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, ipcMain} = require('electron');
 const path = require('path');
 
+let mainWindow = null;
+
 function createWindow() {
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 900,
         height: 650,
         minWidth: 600,
         minHeight: 500,
+        frame: false,
+        titleBarStyle: 'hidden',
         autoHideMenuBar: true,
         webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true
         }
@@ -21,7 +26,34 @@ function createWindow() {
     } else {
         mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
     }
+
+    // Send maximize state changes to renderer
+    mainWindow.on('maximize', () => {
+        mainWindow.webContents.send('window-maximized-change', true);
+    });
+    mainWindow.on('unmaximize', () => {
+        mainWindow.webContents.send('window-maximized-change', false);
+    });
 }
+
+// ── IPC handlers ──
+ipcMain.on('window-minimize', () => {
+    if (mainWindow) mainWindow.minimize();
+});
+ipcMain.on('window-maximize', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+    } else {
+        mainWindow.maximize();
+    }
+});
+ipcMain.on('window-close', () => {
+    if (mainWindow) mainWindow.close();
+});
+ipcMain.handle('window-is-maximized', () => {
+    return mainWindow ? mainWindow.isMaximized() : false;
+});
 
 app.whenReady().then(() => {
     createWindow();
