@@ -71,7 +71,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen bg-[#f7f7f8] dark:bg-[#1c1c1c] overflow-hidden font-sans transition-colors duration-500">
+  <div class="flex h-screen w-screen bg-[#f3f3f5] dark:bg-[#2b2b2b] overflow-hidden font-sans transition-colors duration-500">
 
     <!-- Sidebar -->
     <aside v-if="isSidebarOpen"
@@ -93,7 +93,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Main content -->
-    <main class="flex-1 min-w-0 h-full flex flex-col bg-white dark:bg-[#0d0d0d] rounded-l-2xl overflow-hidden">
+    <main class="flex-1 min-w-0 h-full flex flex-col overflow-hidden">
 
       <!-- Chat -->
       <router-view v-if="currentView === 'chat'" v-slot="{ Component }">

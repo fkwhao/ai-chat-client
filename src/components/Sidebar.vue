@@ -1,5 +1,5 @@
 <template>
-  <aside class="h-full w-full bg-[#f7f7f8] dark:bg-[#1c1c1c] flex flex-col relative transition-colors duration-500 font-sans">
+  <aside class="h-full w-full bg-[#f3f3f5] dark:bg-[#2b2b2b] flex flex-col relative transition-colors duration-500 font-sans">
 
     <!-- Drag region -->
     <div class="drag-region h-[6px] shrink-0"></div>
@@ -10,47 +10,46 @@
       <div class="flex items-center justify-between px-4 pt-2 pb-1 no-drag">
         <span class="text-[11px] font-semibold text-gray-400 dark:text-[#555] tracking-wide">对话历史</span>
         <button @click="emit('toggle-sidebar')"
-                class="p-1 rounded-lg hover:bg-white/80 dark:hover:bg-[#1e1e1e] transition-all text-gray-400 dark:text-[#555]">
+                class="p-1 rounded-lg hover:bg-white/80 dark:hover:bg-[#333333] transition-all text-gray-400 dark:text-[#555]">
           <PanelLeft :size="15"/>
         </button>
       </div>
 
-      <div class="px-4 pt-2 pb-4 space-y-3 no-drag">
-        <button @click="createNewSession" class="w-full flex items-center gap-2.5 px-3 py-2.5 bg-white dark:bg-[#242424] border border-gray-200/60 dark:border-white/8 rounded-xl hover:border-gray-300 dark:hover:border-white/12 dark:hover:bg-[#2a2a2a] active:scale-[0.98] transition-all duration-200">
+      <div class="px-4 pt-2 pb-3 space-y-1.5 no-drag">
+        <button @click="createNewSession" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all duration-150">
           <Plus :size="15" stroke-width="2.5" class="text-gray-500 dark:text-[#999]"/>
           <span class="text-[13px] font-medium text-gray-600 dark:text-[#ccc]">新对话</span>
         </button>
 
-        <div class="relative">
-          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555]"/>
-          <input v-model="searchQuery" type="text" placeholder="搜索..."
-                 class="w-full bg-white dark:bg-[#242424] border border-gray-200/60 dark:border-white/8 rounded-xl pl-9 pr-3 py-2.5 text-[13px] text-gray-700 dark:text-[#ccc] placeholder-gray-400 dark:placeholder-[#555] outline-none focus:border-gray-300 dark:focus:border-white/15 transition-all duration-200"/>
-        </div>
+        <button @click="showSearch = true" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-150">
+          <Search :size="14" class="text-gray-400 dark:text-[#555]"/>
+          <span class="text-[13px] text-gray-400 dark:text-[#555]">搜索...</span>
+        </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-2 space-y-2 custom-scrollbar pb-6" @scroll="handleScroll">
+      <div class="flex-1 overflow-y-auto px-2 space-y-0.5 custom-scrollbar pb-6" @scroll="handleScroll">
         <div v-for="(group, groupName) in groupedHistory" :key="groupName" class="space-y-0.5">
           <div v-if="group.length > 0"
-               class="sticky top-0 z-20 px-3 pt-1.5 pb-1 bg-[#f7f7f8]/95 dark:bg-[#1c1c1c]/95 backdrop-blur-md">
+               class="sticky top-0 z-20 px-3 pt-1.5 pb-1 bg-[#f3f3f5]/95 dark:bg-[#2b2b2b]/95 backdrop-blur-md">
             <span class="text-[10px] font-bold text-gray-400 dark:text-[#555] uppercase tracking-widest">{{ groupName }}</span>
           </div>
           <div v-for="item in group" :key="item.id"
                @click="selectSession(item.id)"
                :class="route.query.session === item.id
-                  ? 'bg-white dark:bg-[#242424] shadow-sm border border-gray-300 dark:border-white/10'
-                  : 'border border-transparent hover:bg-white/60 dark:hover:bg-[#1a1a1a]/60'"
-               class="group/item flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200">
-            <div class="flex items-center gap-3 overflow-hidden pl-1">
-              <div class="w-2 h-2 rounded-full shrink-0 transition-all duration-300"
-                   :class="route.query.session === item.id ? 'bg-gray-700 dark:bg-[#888] shadow-sm' : 'bg-transparent group-hover/item:bg-gray-300 dark:group-hover/item:bg-[#444]'"></div>
+                  ? 'bg-black/5 dark:bg-white/8'
+                  : 'hover:bg-black/5 dark:hover:bg-white/5'"
+               class="group/item flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer transition-all duration-150">
+            <div class="flex items-center gap-2.5 overflow-hidden pl-0.5">
+              <div class="w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300"
+                   :class="route.query.session === item.id ? 'bg-gray-500 dark:bg-[#999]' : 'bg-transparent group-hover/item:bg-gray-300 dark:group-hover/item:bg-[#666]'"></div>
               <span class="truncate text-[13px] transition-colors duration-200"
                     :class="route.query.session === item.id ? 'font-semibold text-gray-800 dark:text-[#eee]' : 'text-gray-500 dark:text-[#888] group-hover/item:text-gray-700 dark:group-hover/item:text-[#ccc]'">
                 {{ item.title }}
               </span>
             </div>
             <button @click.stop="deleteTarget = item"
-                    class="opacity-0 group-hover/item:opacity-100 p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all text-gray-300 dark:text-[#555] active:scale-90">
-              <Trash2 :size="14"/>
+                    class="opacity-0 group-hover/item:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-all text-gray-300 dark:text-[#555] active:scale-90">
+              <Trash2 :size="13"/>
             </button>
           </div>
         </div>
@@ -65,10 +64,10 @@
       </div>
 
       <!-- Bottom: Settings button -->
-      <div class="p-4 bg-[#f7f7f8]/80 dark:bg-[#1c1c1c]/80 backdrop-blur-sm border-t border-gray-200/40 dark:border-white/5 shrink-0">
+      <div class="p-3 bg-[#f3f3f5]/80 dark:bg-[#2b2b2b]/80 backdrop-blur-sm border-t border-gray-200/40 dark:border-white/5 shrink-0">
         <div class="relative">
           <button @click="isSettingsOpen = !isSettingsOpen"
-                  class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/80 dark:hover:bg-[#1a1a1a] transition-all text-gray-500 dark:text-[#777] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98] w-full">
+                  class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all text-gray-500 dark:text-[#777] hover:text-gray-800 dark:hover:text-[#ccc] group active:scale-[0.98] w-full">
             <Settings :size="16" class="transition-transform duration-500 group-hover:rotate-45"/>
             <span class="text-[13px] font-semibold">设置</span>
           </button>
@@ -76,26 +75,26 @@
           <!-- Settings Popover -->
           <Transition name="popover">
             <div v-if="isSettingsOpen"
-                 class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#242424] border border-gray-200 dark:border-white/8 rounded-2xl shadow-xl overflow-hidden z-50 py-1.5">
+                 class="absolute bottom-full left-0 right-0 mb-2 bg-[#f3f3f5] dark:bg-[#2b2b2b] border border-gray-200 dark:border-white/8 rounded-2xl shadow-xl overflow-hidden z-50 py-1.5">
               <button @click="openSettings('api-settings')"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-colors text-[13px] text-gray-700 dark:text-[#e0e0e0] font-medium">
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[13px] text-gray-700 dark:text-[#e0e0e0] font-medium">
                 <Settings2 :size="15" class="text-gray-400"/>
                 API 设置
               </button>
               <button @click="openSettings('token-stats')"
-                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-colors text-[13px] text-gray-700 dark:text-[#e0e0e0] font-medium">
+                      class="w-full flex items-center gap-3 px-4 py-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[13px] text-gray-700 dark:text-[#e0e0e0] font-medium">
                 <BarChart3 :size="15" class="text-gray-400"/>
-                Token 统计
+                使用统计
               </button>
-              <div class="my-1.5 border-t border-gray-100 dark:border-white/8"></div>
+              <div class="my-1.5 border-t border-gray-200 dark:border-white/8"></div>
               <button @click="emit('toggle-theme'); isSettingsOpen = false"
-                      class="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-colors text-[13px] text-gray-700 dark:text-[#e0e0e0] font-medium">
+                      class="w-full flex items-center justify-between px-4 py-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-[13px] text-gray-700 dark:text-[#e0e0e0] font-medium">
                 <span class="flex items-center gap-3">
                   <Moon v-if="!isDarkMode" :size="15" class="text-gray-400"/>
                   <Sun v-else :size="15" class="text-gray-400"/>
                   深色模式
                 </span>
-                <div :class="isDarkMode ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-[#333]'"
+                <div :class="isDarkMode ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-[#555]'"
                      class="w-9 h-5 rounded-full relative transition-colors">
                   <div :class="isDarkMode ? 'translate-x-4' : 'translate-x-0.5'"
                        class="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"></div>
@@ -120,19 +119,19 @@
       <div class="flex-1 px-3 space-y-1">
         <button @click="emit('navigate', 'api-settings')"
                 :class="currentView === 'api-settings'
-                  ? 'bg-white dark:bg-[#242424] shadow-sm border border-gray-300 dark:border-white/10 text-gray-800 dark:text-[#eee]'
-                  : 'border border-transparent text-gray-500 dark:text-[#888] hover:bg-white/60 dark:hover:bg-[#1a1a1a]/60'"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-[13px] font-medium">
+                  ? 'bg-black/5 dark:bg-white/8 text-gray-800 dark:text-[#eee]'
+                  : 'text-gray-500 dark:text-[#888] hover:bg-black/5 dark:hover:bg-white/5'"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-[13px] font-medium">
           <Settings2 :size="16"/>
           API 设置
         </button>
         <button @click="emit('navigate', 'token-stats')"
                 :class="currentView === 'token-stats'
-                  ? 'bg-white dark:bg-[#242424] shadow-sm border border-gray-300 dark:border-white/10 text-gray-800 dark:text-[#eee]'
-                  : 'border border-transparent text-gray-500 dark:text-[#888] hover:bg-white/60 dark:hover:bg-[#1a1a1a]/60'"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-[13px] font-medium">
+                  ? 'bg-black/5 dark:bg-white/8 text-gray-800 dark:text-[#eee]'
+                  : 'text-gray-500 dark:text-[#888] hover:bg-black/5 dark:hover:bg-white/5'"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-[13px] font-medium">
           <BarChart3 :size="16"/>
-          Token 统计
+          使用统计
         </button>
       </div>
     </template>
@@ -140,12 +139,12 @@
     <!-- Delete Confirmation Overlay -->
     <Transition name="popover">
       <div v-if="deleteTarget" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm" @click="cancelDelete">
-        <div class="bg-white dark:bg-[#242424] rounded-2xl shadow-xl mx-4 p-5 w-full max-w-[260px] text-center border border-gray-200 dark:border-white/8" @click.stop>
+        <div class="bg-[#f3f3f5] dark:bg-[#2b2b2b] rounded-2xl shadow-xl mx-4 p-5 w-full max-w-[260px] text-center border border-gray-200 dark:border-white/8" @click.stop>
           <p class="text-[13px] text-gray-700 dark:text-[#ccc] mb-1 font-medium">确定要删除这个对话吗？</p>
           <p class="text-[12px] text-gray-400 dark:text-[#666] mb-4 truncate">"{{ deleteTarget.title }}"</p>
           <div class="flex gap-2 justify-center">
             <button @click="cancelDelete"
-                    class="px-5 py-2 text-[12px] font-medium rounded-lg bg-gray-100 dark:bg-[#1c1c1c] text-gray-600 dark:text-[#999] hover:bg-gray-200 dark:hover:bg-[#2a2a2a] transition-colors">
+                    class="px-5 py-2 text-[12px] font-medium rounded-lg bg-black/5 dark:bg-white/5 text-gray-600 dark:text-[#999] hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
               取消
             </button>
             <button @click="confirmDelete"
@@ -157,11 +156,44 @@
       </div>
     </Transition>
 
+    <!-- Search Modal -->
+    <Transition name="popover">
+      <div v-if="showSearch" class="fixed inset-0 z-[150] flex justify-center pt-[12vh] bg-black/40 backdrop-blur-sm" @click="showSearch = false">
+        <div class="bg-[#f3f3f5] dark:bg-[#2b2b2b] rounded-2xl shadow-2xl w-[480px] max-w-[90vw] max-h-[65vh] flex flex-col border border-gray-200 dark:border-white/8" @click.stop>
+          <div class="p-4 border-b border-gray-200 dark:border-white/8">
+            <div class="relative">
+              <Search :size="15" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#555]"/>
+              <input v-model="searchQuery" type="text" placeholder="搜索对话..."
+                     @input="doSearch"
+                     class="w-full bg-transparent border-none outline-none pl-9 pr-3 py-2 text-[14px] text-gray-800 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#555]"/>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto p-2 custom-scrollbar">
+            <div v-if="searchLoading" class="text-center py-8 text-gray-400 dark:text-[#555] text-[13px] animate-pulse">
+              搜索中...
+            </div>
+            <div v-else-if="searchResults.length === 0 && searchQuery" class="text-center py-8 text-gray-400 dark:text-[#555] text-[13px]">
+              未找到相关对话
+            </div>
+            <div v-else-if="searchResults.length === 0 && !searchQuery" class="text-center py-8 text-gray-400 dark:text-[#555] text-[13px]">
+              输入关键词搜索对话
+            </div>
+            <button v-for="item in searchResults" :key="item.id"
+                    @click="selectSearchResult(item.id)"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-150 text-left">
+              <MessageSquare :size="13" class="text-gray-400 dark:text-[#555] shrink-0"/>
+              <span class="truncate text-[13px] text-gray-700 dark:text-[#ccc]">{{ item.title }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
   </aside>
 </template>
 
 <script setup>
-import {ref, computed, onMounted, onUnmounted, watch} from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import {useRouter, useRoute} from 'vue-router'
 import {Plus, MessageSquare, Settings, Search, Trash2, BarChart3, Settings2, Moon, Sun, ArrowLeft, PanelLeft} from 'lucide-vue-next'
 
@@ -176,12 +208,15 @@ const router = useRouter()
 const route = useRoute()
 
 const searchQuery = ref('')
+const showSearch = ref(false)
+const searchResults = ref([])
+const searchLoading = ref(false)
 const historyData = ref([])
 const currentPage = ref(1)
 const hasMore = ref(true)
 const isLoading = ref(false)
 const isSettingsOpen = ref(false)
-const deleteTarget = ref(null) // 待删除的会话 { id, title }
+const deleteTarget = ref(null)
 
 const API_BASE = '/api/v1/history'
 
@@ -196,7 +231,7 @@ const fetchSessions = async (isReset = false) => {
 
   isLoading.value = true
   try {
-    const res = await fetch(`${API_BASE}/sessions/page?keyword=${encodeURIComponent(searchQuery.value)}&current=${currentPage.value}&size=15`)
+    const res = await fetch(`${API_BASE}/sessions/page?keyword=&current=${currentPage.value}&size=15`)
     if (res.ok) {
       const data = await res.json()
       const records = data.records || []
@@ -217,10 +252,34 @@ const handleScroll = (e) => {
 }
 
 let searchTimeout = null
-watch(searchQuery, () => {
+const doSearch = () => {
   clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => fetchSessions(true), 400)
-})
+  searchTimeout = setTimeout(async () => {
+    if (!searchQuery.value.trim()) {
+      searchResults.value = []
+      return
+    }
+    searchLoading.value = true
+    try {
+      const res = await fetch(`${API_BASE}/sessions/page?keyword=${encodeURIComponent(searchQuery.value)}&current=1&size=50`)
+      if (res.ok) {
+        const data = await res.json()
+        searchResults.value = data.records || []
+      }
+    } catch (e) {
+      searchResults.value = []
+    } finally {
+      searchLoading.value = false
+    }
+  }, 300)
+}
+
+const selectSearchResult = (id) => {
+  showSearch.value = false
+  searchQuery.value = ''
+  searchResults.value = []
+  router.push(`/?session=${id}`)
+}
 
 const groupedHistory = computed(() => {
   const groups = {'今天': [], '昨天': [], '更早': []}

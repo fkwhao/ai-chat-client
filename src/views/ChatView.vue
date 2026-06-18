@@ -456,10 +456,10 @@ const mainRenderer = new marked.Renderer()
 
 // 表格渲染
 mainRenderer.table = (token) => {
-  const header = token.header.map(cell => `<th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-[#ccc] bg-gray-50 dark:bg-[#1c1c1c] border-b border-gray-200 dark:border-white/10">${cell.text}</th>`).join('')
+  const header = token.header.map(cell => `<th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-[#ccc] bg-gray-50 dark:bg-[#1f1f1f] border-b border-gray-200 dark:border-white/10">${cell.text}</th>`).join('')
   const rows = token.rows.map(row => {
     const cells = row.map(cell => `<td class="px-4 py-2.5 text-sm text-gray-600 dark:text-[#bbb] border-b border-gray-100 dark:border-white/5">${cell.text}</td>`).join('')
-    return `<tr class="hover:bg-gray-50 dark:hover:bg-[#1a1a1a]/50 transition-colors">${cells}</tr>`
+    return `<tr class="hover:bg-gray-50 dark:hover:bg-[#252525]/50 transition-colors">${cells}</tr>`
   }).join('')
 
   return `
@@ -489,9 +489,9 @@ mainRenderer.code = (tokenOrCode, langOrUndefined) => {
     }
 
 	    return `
-	  <div class="my-5 rounded-xl bg-gray-50 dark:bg-[#1c1c1c] border border-gray-200/60 dark:border-white/8 shadow-sm font-sans relative overflow-clip group/code">
+		  <div class="my-5 rounded-xl bg-gray-50 dark:bg-[#2b2b2b] border border-gray-200/60 dark:border-white/8 shadow-sm font-sans relative overflow-clip group/code">
 
-	    <div class="flex items-center justify-between px-4 py-2 bg-gray-100/90 dark:bg-[#242424]/90 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200/50 dark:border-white/8">
+		    <div class="flex items-center justify-between px-4 py-2 bg-gray-100/90 dark:bg-[#252525]/90 backdrop-blur-md sticky top-0 z-10 border-b border-gray-200/50 dark:border-white/8 rounded-t-xl">
 	      <span class="text-[11px] font-mono text-gray-500 dark:text-[#777] font-bold uppercase tracking-wider">${language}</span>
 	      <button class="copy-btn flex items-center gap-1.5 text-gray-500 dark:text-[#777] hover:text-gray-800 dark:hover:text-gray-100 transition-colors text-[12px] font-medium" data-code="${encodedCode}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -512,7 +512,7 @@ mainRenderer.code = (tokenOrCode, langOrUndefined) => {
 const reasoningRenderer = new marked.Renderer()
 reasoningRenderer.code = (tokenOrCode) => {
   const textCode = typeof tokenOrCode === 'object' ? tokenOrCode.text : tokenOrCode
-  return `<div class="bg-gray-100/80 dark:bg-[#1c1c1c]/80 rounded-lg my-2 border border-gray-200/80 dark:border-white/8 p-3"><pre style="background:transparent!important; padding:0!important; margin:0!important; border:none!important; white-space: pre-wrap !important; word-break: break-all !important;" class="text-gray-500 dark:text-[#777] text-[13px] font-mono"><code>${textCode}</code></pre></div>`
+  return `<div class="bg-gray-100/80 dark:bg-[#2b2b2b]/80 rounded-lg my-2 border border-gray-200/80 dark:border-white/8 p-3"><pre style="background:transparent!important; padding:0!important; margin:0!important; border:none!important; white-space: pre-wrap !important; word-break: break-all !important;" class="text-gray-500 dark:text-[#777] text-[13px] font-mono"><code>${textCode}</code></pre></div>`
 }
 
 const renderMarkdown = (content) => {
@@ -755,7 +755,8 @@ const sendMessage = async () => {
             userContent: storedUserContent,
             assistantContent: aiMsg.content,
             reasoningContent: aiMsg.reasoningContent,
-            tokens: newTokens
+            tokens: newTokens,
+            model: selectedModelName.value
           })
         })
         window.dispatchEvent(new CustomEvent('refresh-sessions'))
@@ -767,38 +768,43 @@ const sendMessage = async () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-white dark:bg-[#0d0d0d] relative transition-colors duration-500">
+  <div class="flex flex-col h-full bg-[#fafafa] dark:bg-[#131313] relative transition-colors duration-500 rounded-l-2xl overflow-hidden">
 
     <!-- ═══ Top Bar (draggable, fixed) ═══ -->
-    <div class="drag-region h-10 flex items-center px-4 justify-between shrink-0 select-none bg-gradient-to-b from-white/50 to-transparent dark:from-white/[0.03] dark:to-transparent border-b border-black/5 dark:border-white/5">
+    <div class="drag-region h-10 flex items-center px-4 justify-between shrink-0 select-none bg-gradient-to-b from-[#fafafa]/50 to-transparent dark:from-white/[0.03] dark:to-transparent border-b border-black/5 dark:border-white/5">
       <!-- Left: sidebar toggle + new chat (only when hidden) + title -->
       <div class="no-drag flex items-center gap-1.5 min-w-0">
         <button v-if="!isSidebarOpen" @click="emit('toggle-sidebar')"
-                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all text-gray-400 dark:text-[#555]">
+                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all text-gray-400 dark:text-[#555]">
           <PanelLeft :size="17"/>
         </button>
         <button v-if="!isSidebarOpen" @click="startNewSession" title="新对话"
-                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all text-gray-400 dark:text-[#555]">
+                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all text-gray-400 dark:text-[#555]">
           <SquarePen :size="16"/>
         </button>
+        <!-- Backend status dot -->
+        <span class="relative flex items-center" title="后端状态">
+          <span class="w-2 h-2 rounded-full shrink-0 transition-colors duration-500"
+                :class="backendStatus === 'ready' ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.5)]' : backendStatus === 'checking' ? 'bg-amber-400 animate-pulse' : 'bg-red-400'"></span>
+        </span>
         <span class="text-[13px] font-semibold text-gray-700 dark:text-[#bbb] truncate">{{ sessionTitle }}</span>
       </div>
 
       <!-- Right: outline + window controls -->
       <div class="no-drag flex items-center gap-1">
         <button @click="isRightSidebarOpen = !isRightSidebarOpen" title="对话大纲"
-                :class="isRightSidebarOpen ? 'bg-gray-100 dark:bg-[#1a1a1a] text-gray-600 dark:text-[#bbb]' : 'text-gray-400 dark:text-[#666]'"
-                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all">
+                :class="isRightSidebarOpen ? 'bg-gray-100 dark:bg-[#1f1f1f] text-gray-600 dark:text-[#bbb]' : 'text-gray-400 dark:text-[#666]'"
+                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all">
           <History :size="15"/>
         </button>
 
         <!-- Window controls -->
         <button @click="winMinimize" title="最小化"
-                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all text-gray-400 dark:text-[#666]">
+                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all text-gray-400 dark:text-[#666]">
           <Minus :size="15" stroke-width="2"/>
         </button>
         <button @click="winMaximize" title="最大化"
-                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all text-gray-400 dark:text-[#666]">
+                class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all text-gray-400 dark:text-[#666]">
           <Maximize2 :size="14" stroke-width="2"/>
         </button>
         <button @click="winClose" title="关闭"
@@ -826,7 +832,7 @@ const sendMessage = async () => {
             <summary
                 class="flex items-center gap-1.5 cursor-pointer list-none text-gray-400 dark:text-[#777] hover:text-gray-600 dark:hover:text-[#999] transition-colors text-[13px] font-medium select-none">
               <div
-                  class="w-4 h-4 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1a1a1a] transition-colors">
+                  class="w-4 h-4 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1f1f1f] transition-colors">
                 <ChevronRight class="w-3 h-3 transition-transform group-open:rotate-90"/>
               </div>
               {{ (msg.isStreaming && !msg.content) ? '深度思考中...' : '深度思考' }}
@@ -845,7 +851,7 @@ const sendMessage = async () => {
                    @click="openPreview({ ...attachment, isImage: true })"
                    class="max-w-[200px] max-h-[200px] object-cover rounded-2xl shadow-md hover:shadow-lg cursor-zoom-in transition-shadow"/>
               <div v-else
-                   class="flex items-center gap-2.5 bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/8 rounded-xl px-3.5 py-2.5 max-w-[240px] shadow-sm">
+                   class="flex items-center gap-2.5 bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-white/8 rounded-xl px-3.5 py-2.5 max-w-[240px] shadow-sm">
                 <FileText :size="18" class="shrink-0 text-gray-400"/>
                 <div class="min-w-0">
                   <div class="text-[12px] font-semibold text-gray-700 dark:text-[#ccc] truncate">{{ attachment.name }}</div>
@@ -859,7 +865,7 @@ const sendMessage = async () => {
           <div v-if="(msg.role === 'user' ? msg.displayContent : msg.content) || (msg.isStreaming && !msg.reasoningContent)" :class="[
             'relative leading-relaxed transition-all',
             msg.role === 'user'
-              ? 'user-message bg-gradient-to-br from-blue-50 to-indigo-50/70 border border-blue-100/60 dark:bg-[#1c1c1c] dark:bg-none dark:border-white/8 text-gray-900 dark:text-[#e0e0e0] rounded-2xl rounded-tr-sm shadow-sm dark:shadow-none px-4 py-2.5 text-[14px] max-w-[85%] sm:max-w-[70%]'
+              ? 'user-message bg-gradient-to-br from-blue-50 to-indigo-50/70 border border-blue-100/60 dark:bg-[#1f1f1f] dark:bg-none dark:border-white/8 text-gray-900 dark:text-[#e0e0e0] rounded-2xl rounded-tr-sm shadow-sm dark:shadow-none px-4 py-2.5 text-[14px] max-w-[85%] sm:max-w-[70%]'
               : 'ai-message bg-transparent dark:bg-transparent text-gray-800 dark:text-[#b0b0b0] rounded-2xl border-none shadow-none px-5 py-3.5 text-[15px] w-full max-w-[95%] sm:max-w-[85%]'
           ]">
             <div v-if="msg.role === 'user' ? msg.displayContent : msg.content"
@@ -873,23 +879,23 @@ const sendMessage = async () => {
 
             <div class="relative group/btn" v-if="msg.role === 'user' && i === lastUserMessageIndex">
               <button @click="editMessage(i)"
-                      class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all">
+                      class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all">
                 <Pencil :size="14" stroke-width="2.5"/>
               </button>
               <div
-                  class="absolute bottom-[110%] left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 dark:bg-[#1a1a1a] text-white text-[11px] rounded-md opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  class="absolute bottom-[110%] left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 dark:bg-[#1f1f1f] text-white text-[11px] rounded-md opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                 重新编辑
               </div>
             </div>
 
             <div class="relative group/btn" v-if="!msg.isStreaming">
               <button @click="copyToClipboard(msg.role === 'user' ? (msg.displayContent || '[附件]') : msg.content, i)"
-                      class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1a1a1a] transition-all">
+                      class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252525] transition-all">
                 <CheckCheck v-if="copiedMessageIndex === i" :size="14" class="text-green-500" stroke-width="2.5"/>
                 <Copy v-else :size="14" stroke-width="2.5"/>
               </button>
               <div
-                  class="absolute bottom-[110%] left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 dark:bg-[#1a1a1a] text-white text-[11px] rounded-md opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  class="absolute bottom-[110%] left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 dark:bg-[#1f1f1f] text-white text-[11px] rounded-md opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                 复制全文
               </div>
             </div>
@@ -905,7 +911,7 @@ const sendMessage = async () => {
         class="absolute w-full px-4 sm:px-8 z-20 flex justify-center flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
         :class="messageHistory.length === 0
           ? 'bottom-[50%] translate-y-[50%] pointer-events-none'
-          : 'bottom-0 translate-y-0 pt-16 pb-6 pointer-events-none bg-gradient-to-t from-white via-white/95 dark:from-[#0d0d0d] dark:via-[#0d0d0d]/95 to-transparent'"
+          : 'bottom-0 translate-y-0 pt-16 pb-6 pointer-events-none bg-gradient-to-t from-[#fafafa] via-[#fafafa]/95 dark:from-[#131313] dark:via-[#131313]/95 to-transparent'"
     >
       <div class="relative w-full max-w-[950px] pointer-events-auto flex flex-col items-center">
 
@@ -924,7 +930,7 @@ const sendMessage = async () => {
         <Transition name="fade-up">
           <div v-if="editingIndex !== -1" class="absolute -top-12 left-0 right-0 flex justify-center z-10 w-full">
             <div
-                class="bg-gray-800/90 dark:bg-[#1a1a1a] text-white dark:text-[#e0e0e0] px-4 py-2 rounded-full text-[12px] shadow-sm flex items-center gap-3 border border-gray-700 dark:border-white/8">
+                class="bg-gray-800/90 dark:bg-[#1f1f1f] text-white dark:text-[#e0e0e0] px-4 py-2 rounded-full text-[12px] shadow-sm flex items-center gap-3 border border-gray-700 dark:border-white/8">
               <span class="flex items-center gap-1.5 font-medium tracking-wide">
                 <Pencil :size="13" class="text-emerald-400"/>
                 正在重新编辑，发送后将覆盖后续对话 (Esc取消)
@@ -940,7 +946,7 @@ const sendMessage = async () => {
 
         <Transition name="fade-up">
           <button v-if="!isAtBottom && messageHistory.length > 0" @click="scrollToBottom(true, true)"
-                  class="absolute left-1/2 -translate-x-1/2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/8 text-gray-500 dark:text-[#777] rounded-full p-2.5 shadow-md hover:text-gray-900 dark:hover:text-white transition-all duration-300 z-10"
+                  class="absolute left-1/2 -translate-x-1/2 bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-white/8 text-gray-500 dark:text-[#777] rounded-full p-2.5 shadow-md hover:text-gray-900 dark:hover:text-white transition-all duration-300 z-10"
                   :class="editingIndex !== -1 ? '-top-28' : '-top-14'">
             <ArrowDown :size="18"/>
           </button>
@@ -949,16 +955,16 @@ const sendMessage = async () => {
         <div class="relative w-full group/wrapper">
 
           <div
-              class="relative w-full bg-white dark:bg-[#1a1a1a] border border-gray-200/80 dark:border-white/8 rounded-2xl shadow-sm p-2 transition-all duration-300 hover:shadow-md dark:hover:border-white/12">
+              class="relative w-full bg-white dark:bg-[#2b2b2b] border border-gray-200/80 dark:border-white/8 rounded-2xl shadow-sm p-2 transition-all duration-300 hover:shadow-md dark:hover:border-white/12">
             <div v-if="pendingFiles.length > 0"
                  class="flex flex-wrap gap-3 px-3 pt-2 pb-1 border-b border-gray-100 dark:border-white/5 mb-2">
               <div v-for="(item, index) in pendingFiles" :key="index"
                    @click="openPreview(item)"
-                   class="relative group flex items-center gap-2 bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-white/8 rounded-xl p-1.5 pr-3 max-w-[200px] cursor-pointer">
+                   class="relative group flex items-center gap-2 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/8 rounded-xl p-1.5 pr-3 max-w-[200px] cursor-pointer">
                 <img v-if="item.isImage" :src="item.url"
                      class="w-10 h-10 object-cover rounded-lg border border-gray-200/50 dark:border-transparent"/>
                 <div v-else
-                     class="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-[#111111] text-gray-500 dark:text-gray-400 rounded-lg">
+                     class="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-[#1a1a1a] text-gray-500 dark:text-gray-400 rounded-lg">
                   <FileText :size="20"/>
                 </div>
                 <div class="flex flex-col overflow-hidden">
@@ -966,7 +972,7 @@ const sendMessage = async () => {
                   <span class="text-[10px] text-gray-400 dark:text-[#777]">{{ item.size }}</span>
                 </div>
                 <button @click.stop="removePendingFile(index)"
-                        class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white dark:bg-[#222222] border border-gray-200 dark:border-transparent rounded-full flex items-center justify-center text-gray-500 dark:text-gray-200 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all z-10">
+                        class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white dark:bg-[#252525] border border-gray-200 dark:border-transparent rounded-full flex items-center justify-center text-gray-500 dark:text-gray-200 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition-all z-10">
                   <X :size="12"/>
                 </button>
               </div>
@@ -981,7 +987,7 @@ const sendMessage = async () => {
 
             <div class="flex items-center justify-between pl-2 pr-1 pt-1 pb-1 w-full">
               <label
-                  class="p-2.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222222] dark:hover:text-[#e0e0e0] rounded-full cursor-pointer transition-colors">
+                  class="p-2.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252525] dark:hover:text-[#e0e0e0] rounded-full cursor-pointer transition-colors">
                 <Paperclip :size="18"/>
                 <input type="file" class="hidden" multiple @change="onFileChange">
               </label>
@@ -989,7 +995,7 @@ const sendMessage = async () => {
               <div class="flex items-center gap-2">
                 <div class="relative hidden sm:flex model-selector-container">
                   <div @click="isDropdownOpen = !isDropdownOpen"
-                       class="flex items-center gap-1.5 bg-gray-50 dark:bg-[#111111] hover:bg-gray-100 dark:hover:bg-[#222222] transition-colors rounded-xl px-3 py-1.5 cursor-pointer text-[12px] font-medium text-gray-600 dark:text-[#888] select-none">
+                       class="flex items-center gap-1.5 bg-gray-50 dark:bg-[#1a1a1a] hover:bg-gray-100 dark:hover:bg-[#252525] transition-colors rounded-xl px-3 py-1.5 cursor-pointer text-[12px] font-medium text-gray-600 dark:text-[#888] select-none">
                     {{ selectedModelName }}
                     <ChevronDown :size="14" class="transition-transform duration-200"
                                  :class="{ 'rotate-180': isDropdownOpen }"/>
@@ -997,10 +1003,10 @@ const sendMessage = async () => {
 
                   <Transition name="dropdown-fade">
                     <div v-if="isDropdownOpen"
-                         class="absolute bottom-full mb-2 right-0 w-48 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/8 rounded-2xl shadow-lg overflow-hidden z-50">
+                         class="absolute bottom-full mb-2 right-0 w-48 bg-white dark:bg-[#1f1f1f] border border-gray-100 dark:border-white/8 rounded-2xl shadow-lg overflow-hidden z-50">
                       <div v-for="m in availableModels" :key="m.id"
                            @click="selectModel(m.id)"
-                           class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#222222] cursor-pointer text-[13px] text-gray-700 dark:text-[#e0e0e0] flex items-center justify-between group transition-colors">
+                           class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#252525] cursor-pointer text-[13px] text-gray-700 dark:text-[#e0e0e0] flex items-center justify-between group transition-colors">
                         <span class="truncate pr-2">{{ m.name }}</span>
                         <Check v-if="selectedModelId === m.id" :size="14" class="text-emerald-500 shrink-0"/>
                       </div>
@@ -1009,13 +1015,13 @@ const sendMessage = async () => {
                 </div>
 
                 <button v-if="!isStreaming" @click="sendMessage"
-                        :class="(userInput.trim() || pendingFiles.length > 0) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-[#10a37f] dark:hover:bg-[#19c37d] text-white shadow-sm' : 'bg-gray-100 dark:bg-[#222222] text-gray-400 dark:text-[#555] cursor-not-allowed'"
+                        :class="(userInput.trim() || pendingFiles.length > 0) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-[#10a37f] dark:hover:bg-[#19c37d] text-white shadow-sm' : 'bg-gray-100 dark:bg-[#252525] text-gray-400 dark:text-[#555] cursor-not-allowed'"
                         class="p-2.5 rounded-xl transition-all">
                   <ArrowUp :size="18" stroke-width="2.5"/>
                 </button>
 
                 <button v-else @click="stopGeneration"
-                        class="bg-gray-100 dark:bg-[#222222] text-gray-500 dark:text-[#777] hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-[#333333] p-2.5 rounded-xl transition-all">
+                        class="bg-gray-100 dark:bg-[#252525] text-gray-500 dark:text-[#777] hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-[#252525] p-2.5 rounded-xl transition-all">
                   <Square :size="16" class="fill-current"/>
                 </button>
               </div>
@@ -1056,7 +1062,7 @@ const sendMessage = async () => {
       <div v-if="isRightSidebarOpen"
            class="fixed top-16 right-4 sm:right-6 w-[320px] max-h-[75vh] z-[110] overflow-y-auto hide-scrollbar pointer-events-auto origin-top-right">
 
-        <div v-if="userQuestions.length === 0" class="flex flex-col items-center justify-center h-24 text-gray-500 dark:text-[#888] space-y-2 bg-white/40 dark:bg-[#1a1a1a]/40 backdrop-blur-md rounded-2xl p-4 mt-2">
+        <div v-if="userQuestions.length === 0" class="flex flex-col items-center justify-center h-24 text-gray-500 dark:text-[#888] space-y-2 bg-white/40 dark:bg-[#1f1f1f]/40 backdrop-blur-md rounded-2xl p-4 mt-2">
           <History :size="24" stroke-width="1.5" class="opacity-40"/>
           <span class="text-[12px] tracking-wide">暂无对话大纲</span>
         </div>
@@ -1069,11 +1075,11 @@ const sendMessage = async () => {
                class="relative flex gap-4 items-start group cursor-pointer animate-ladder-drop py-2.5"
                :style="`animation-delay: ${i * 60}ms`">
 
-            <div class="relative z-10 w-6 h-6 rounded-full bg-white dark:bg-[#111111] flex items-center justify-center shrink-0 group-hover:-translate-y-0.5 transition-transform duration-300 shadow-sm border border-gray-200/60 dark:border-white/10">
+            <div class="relative z-10 w-6 h-6 rounded-full bg-white dark:bg-[#1a1a1a] flex items-center justify-center shrink-0 group-hover:-translate-y-0.5 transition-transform duration-300 shadow-sm border border-gray-200/60 dark:border-white/10">
               <div class="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-[#666] group-hover:bg-blue-500 group-hover:shadow-[0_0_8px_rgba(59,130,246,0.6)] transition-all duration-300 group-hover:scale-150"></div>
             </div>
 
-            <div class="flex-1 transition-all duration-500 group-hover:-translate-x-1 group-hover:bg-white/90 dark:group-hover:bg-[#1a1a1a]/90 group-hover:backdrop-blur-xl p-2 -m-2 rounded-xl border border-transparent group-hover:border-gray-200/50 dark:group-hover:border-white/5 group-hover:shadow-lg overflow-hidden">
+            <div class="flex-1 transition-all duration-500 group-hover:-translate-x-1 group-hover:bg-white/90 dark:group-hover:bg-[#1f1f1f]/90 group-hover:backdrop-blur-xl p-2 -m-2 rounded-xl border border-transparent group-hover:border-gray-200/50 dark:group-hover:border-white/5 group-hover:shadow-lg overflow-hidden">
               <div class="text-[13.5px] font-medium text-gray-800 dark:text-[#ddd] group-hover:text-gray-900 dark:group-hover:text-white leading-relaxed line-clamp-1 group-hover:line-clamp-none group-hover:whitespace-normal transition-colors duration-300 drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 {{ q.displayContent || '[附件]' }}
               </div>
